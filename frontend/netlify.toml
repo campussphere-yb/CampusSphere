@@ -1,0 +1,22 @@
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# Return a clean 404 for /api/* so axios gets a fast error and falls back to mock data.
+# Without this rule, the catch-all below would return index.html for API calls,
+# causing axios to throw a JSON parse error before the mock fallback triggers.
+[[redirects]]
+  from   = "/api/*"
+  to     = "/api/:splat"
+  status = 404
+
+# SPA catch-all: send every other path to index.html so React Router handles routing.
+# Without this, a direct visit to /dashboard or a page refresh gives Netlify's own 404.
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200

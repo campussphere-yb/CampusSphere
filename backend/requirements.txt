@@ -1,0 +1,16 @@
+# Core web framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# Database ORM + SQLite driver (SQLite ships with Python, no extra install needed)
+sqlalchemy==2.0.50
+
+# PostgreSQL driver (used in production on Railway)
+# psycopg2-binary works without needing system libpq headers
+psycopg2-binary==2.9.10
+
+# Settings management (.env file support)
+pydantic-settings==2.6.1
+
+# Email validation used in Pydantic schemas (EmailStr)
+email-validator==2.2.0
