@@ -40,8 +40,10 @@ export const dashboardApi = {
 }
 
 // ── Mentions ──────────────────────────────────────────────────────────────────
+// NOTE: trailing slash on list endpoints avoids a Railway 307 redirect that
+// sends browsers to an http:// URL — blocked by mixed-content policy from Netlify.
 export const mentionsApi = {
-  list:                 (params = {}) => http.get('/mentions', { params }),
+  list:                 (params = {}) => http.get('/mentions/', { params }),
   get:                  (id)          => http.get(`/mentions/${id}`),
   update:               (id, data)    => http.patch(`/mentions/${id}`, data),
   delete:               (id)          => http.delete(`/mentions/${id}`),
@@ -51,19 +53,19 @@ export const mentionsApi = {
 
 // ── Alerts ────────────────────────────────────────────────────────────────────
 export const alertsApi = {
-  list:   (params = {}) => http.get('/alerts', { params }),
+  list:   (params = {}) => http.get('/alerts/', { params }),
   getOpen:()            => http.get('/alerts/open'),
   get:    (id)          => http.get(`/alerts/${id}`),
-  create: (data)        => http.post('/alerts', data),
+  create: (data)        => http.post('/alerts/', data),
   update: (id, data)    => http.patch(`/alerts/${id}`, data),
   delete: (id)          => http.delete(`/alerts/${id}`),
 }
 
 // ── Connectors ────────────────────────────────────────────────────────────────
 export const connectorsApi = {
-  list:   ()         => http.get('/connectors'),
+  list:   ()         => http.get('/connectors/'),
   get:    (id)       => http.get(`/connectors/${id}`),
-  create: (data)     => http.post('/connectors', data),
+  create: (data)     => http.post('/connectors/', data),
   update: (id, data) => http.patch(`/connectors/${id}`, data),
   delete: (id)       => http.delete(`/connectors/${id}`),
   sync:   (id)       => http.post(`/connectors/${id}/sync`),
@@ -71,16 +73,16 @@ export const connectorsApi = {
 
 // ── Sources ───────────────────────────────────────────────────────────────────
 export const sourcesApi = {
-  list:   ()         => http.get('/sources'),
+  list:   ()         => http.get('/sources/'),
   get:    (id)       => http.get(`/sources/${id}`),
-  create: (data)     => http.post('/sources', data),
+  create: (data)     => http.post('/sources/', data),
   update: (id, data) => http.patch(`/sources/${id}`, data),
   delete: (id)       => http.delete(`/sources/${id}`),
 }
 
 // ── Summaries ─────────────────────────────────────────────────────────────────
 export const summariesApi = {
-  list:     ()     => http.get('/summaries'),
+  list:     ()     => http.get('/summaries/'),
   getLatest:()     => http.get('/summaries/latest'),
   generate: (data) => http.post('/summaries/generate', data),
   get:      (id)   => http.get(`/summaries/${id}`),
@@ -97,7 +99,7 @@ export const trackingApi = {
 
 // ── Departments ───────────────────────────────────────────────────────────────
 export const departmentsApi = {
-  list: () => http.get('/departments'),
+  list: () => http.get('/departments/'),
 }
 
 // ── AI ────────────────────────────────────────────────────────────────────────
