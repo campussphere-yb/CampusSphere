@@ -49,6 +49,19 @@ from app.routers import (
 # Switch to Alembic migrations before going to production.
 Base.metadata.create_all(bind=engine)
 
+# ── Auto-seed BU demo data ────────────────────────────────────────────────────
+# Runs once on every cold start. seed_if_empty() checks for existing mentions
+# before inserting — safe to call on every startup, never duplicates rows.
+# This keeps Railway's ephemeral SQLite populated after each redeploy.
+from app.seed import seed_if_empty          # noqa: E402
+from app.database import SessionLocal       # noqa: E402
+
+_db = SessionLocal()
+try:
+    seed_if_empty(_db)
+finally:
+    _db.close()
+
 # ── App instance ──────────────────────────────────────────────────────────────
 app = FastAPI(
     title=settings.APP_NAME,
