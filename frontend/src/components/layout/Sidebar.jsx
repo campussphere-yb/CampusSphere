@@ -50,8 +50,9 @@ function NavItem({ to, Icon, label, badge, counts }) {
       <Icon size={15} strokeWidth={2} className="shrink-0" />
       <span className="flex-1">{label}</span>
       {count > 0 && (
-        <span className="min-w-[18px] h-[18px] flex items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold px-1">
+        <span className="flex items-center gap-1 bg-red-500 text-white text-[10px] font-bold rounded-full px-1.5 h-[18px]">
           {count > 99 ? '99+' : count}
+          {badge === 'mentions' && <span className="font-normal opacity-90">new</span>}
         </span>
       )}
     </NavLink>
