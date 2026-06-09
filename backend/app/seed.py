@@ -10,7 +10,7 @@ Sources covered:
   External — Boston Globe, Boston Herald, GBH Boston
 """
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.models.source           import Source
@@ -22,7 +22,8 @@ from app.models.tracking_keyword import TrackingKeyword
 
 
 def _ago(days: int = 0, hours: int = 0, minutes: int = 0) -> datetime:
-    return datetime.now(timezone.utc) - timedelta(days=days, hours=hours, minutes=minutes)
+    """Return a naive UTC datetime N days/hours/minutes in the past."""
+    return datetime.utcnow() - timedelta(days=days, hours=hours, minutes=minutes)
 
 
 def seed_if_empty(db: Session) -> None:
