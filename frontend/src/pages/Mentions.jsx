@@ -164,6 +164,8 @@ export default function Mentions() {
     try {
       const res = await mentionsApi.update(id, { status })
       setMentions(ms => ms.map(m => m.id === id ? res.data : m))
+      // Notify Sidebar to refresh badge count immediately
+      window.dispatchEvent(new CustomEvent('mention:statusChanged'))
     } catch { /* silent */ }
   }
 

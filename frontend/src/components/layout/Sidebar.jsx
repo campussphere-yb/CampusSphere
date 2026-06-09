@@ -90,7 +90,13 @@ export default function Sidebar() {
 
     fetchCounts()                                       // immediate on mount
     const id = setInterval(fetchCounts, 30_000)         // re-poll every 30 s
-    return () => clearInterval(id)
+
+    // Instant update whenever any mention status changes (e.g. mark-as-read on open)
+    window.addEventListener('mention:statusChanged', fetchCounts)
+    return () => {
+      clearInterval(id)
+      window.removeEventListener('mention:statusChanged', fetchCounts)
+    }
   }, [])
 
   return (

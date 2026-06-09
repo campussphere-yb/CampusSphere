@@ -129,9 +129,23 @@ export default function MentionDetail() {
           mentionsApi.get(id),
           departmentsApi.list(),
         ])
-        setMention(mRes.data)
-        setNotes(mRes.data.notes || '')
+        let loaded = mRes.data
+        setNotes(loaded.notes || '')
         setDepartments(dRes.data.length > 0 ? dRes.data : MOCK_DEPARTMENTS)
+
+        // ── Auto mark-as-read ──────────────────────────────────────────────────
+        // Opening a "new" mention counts as reading it — flip to "reviewed"
+        // silently so the inbox unread count and blue dot both clear.
+        if (loaded.status === 'new') {
+          try {
+            const updated = await mentionsApi.update(id, { status: 'reviewed' })
+            loaded = updated.data
+            // Tell the Sidebar to re-fetch counts immediately
+            window.dispatchEvent(new CustomEvent('mention:statusChanged'))
+          } catch { /* non-fatal — don't break the detail view */ }
+        }
+
+        setMention(loaded)
       } catch {
         // Fall back to mock
         const mock = MOCK_MENTIONS.find(m => m.id === parseInt(id))
