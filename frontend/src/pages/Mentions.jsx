@@ -24,6 +24,8 @@ const PLATFORM_ICONS = {
   twitter:   '𝕏',
   reddit:    'R',
   instagram: 'IG',
+  linkedin:  'in',
+  tiktok:    'TT',
   news:      '📰',
 }
 
