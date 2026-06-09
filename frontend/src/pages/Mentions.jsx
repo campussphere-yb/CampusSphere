@@ -6,7 +6,7 @@
  * Rows are clickable — navigates to /mentions/:id for the full detail view.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { RefreshCw, ChevronLeft, ChevronRight, CalendarDays, X } from 'lucide-react'
 import { mentionsApi } from '../api/client'
@@ -15,7 +15,13 @@ import Badge      from '../components/ui/Badge'
 import Spinner    from '../components/ui/Spinner'
 import MockBanner from '../components/ui/MockBanner'
 
-const PAGE_SIZE   = 20
+const PAGE_SIZE      = 25          // above seed count (21) so all fit on one page
+const REFRESH_MS     = 30_000     // auto-refresh every 30 s
+
+function fmtUpdated(d) {
+  if (!d) return null
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
 const RISK_LEVELS = ['', 'low', 'medium', 'high', 'critical']
 const SENTIMENTS  = ['', 'positive', 'neutral', 'negative']
 const STATUSES    = ['', 'new', 'reviewed', 'escalated', 'resolved', 'ignored']
@@ -56,11 +62,14 @@ export default function Mentions() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const [mentions,  setMentions]  = useState([])
-  const [loading,   setLoading]   = useState(true)
-  const [usingMock, setUsingMock] = useState(false)
-  const [page,      setPage]      = useState(0)
-  const [hasMore,   setHasMore]   = useState(false)
+  const [mentions,     setMentions]     = useState([])
+  const [loading,      setLoading]      = useState(true)
+  const [usingMock,    setUsingMock]    = useState(false)
+  const [page,         setPage]         = useState(0)
+  const [hasMore,      setHasMore]      = useState(false)
+  const [lastUpdated,  setLastUpdated]  = useState(null)
+  const filtersRef = useRef(null)
+  const pageRef    = useRef(0)
   const [filters,   setFilters]   = useState({
     risk_level:      searchParams.get('risk_level')      || '',
     sentiment_label: searchParams.get('sentiment_label') || '',
@@ -109,6 +118,7 @@ export default function Mentions() {
         setHasMore(res.data.length > PAGE_SIZE)
         setMentions(res.data.slice(0, PAGE_SIZE))
       }
+      setLastUpdated(new Date())
     } catch {
       setUsingMock(true)
       setMentions(MOCK_MENTIONS)
@@ -118,7 +128,19 @@ export default function Mentions() {
     }
   }
 
-  useEffect(() => { load() }, [])
+  // Initial load + 30 s auto-refresh (keeps current page + filters)
+  useEffect(() => {
+    filtersRef.current = filters
+    pageRef.current    = page
+  })
+  useEffect(() => {
+    load()
+    const id = setInterval(
+      () => load(filtersRef.current, pageRef.current),
+      REFRESH_MS,
+    )
+    return () => clearInterval(id)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFilter = (key, val) => {
     const next = { ...filters, [key]: val }
@@ -153,16 +175,26 @@ export default function Mentions() {
         <div>
           <h1 className="text-xl font-bold text-gray-900">Mentions Inbox</h1>
           <p className="text-sm text-gray-500">
-            {mentions.length} mention{mentions.length !== 1 ? 's' : ''}
+            {hasMore
+              ? `${mentions.length}+ mentions`
+              : `${mentions.length} mention${mentions.length !== 1 ? 's' : ''}`}
             {Object.values(filters).some(Boolean) ? ' (filtered)' : ''}
           </p>
         </div>
-        <button
-          onClick={() => { setPage(0); load(filters, 0) }}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-        >
-          <RefreshCw size={13} /> Refresh
-        </button>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
+              Live · {fmtUpdated(lastUpdated)}
+            </span>
+          )}
+          <button
+            onClick={() => { setPage(0); load(filters, 0) }}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+          >
+            <RefreshCw size={13} /> Refresh
+          </button>
+        </div>
       </div>
 
       {usingMock && <MockBanner />}

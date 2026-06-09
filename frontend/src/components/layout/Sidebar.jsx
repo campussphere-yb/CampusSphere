@@ -79,13 +79,18 @@ export default function Sidebar() {
   const initials = userName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
 
   useEffect(() => {
-    dashboardApi.getCounts()
-      .then(r => {
-        const data = r.data
-        // Fall back to mock when DB has no real mentions yet (both counts are 0)
-        setCounts((!data.new_mentions && !data.open_alerts) ? MOCK_COUNTS : data)
-      })
-      .catch(() => setCounts(MOCK_COUNTS))
+    const fetchCounts = () =>
+      dashboardApi.getCounts()
+        .then(r => {
+          const data = r.data
+          // Fall back to mock when DB has no real mentions yet (both counts are 0)
+          setCounts((!data.new_mentions && !data.open_alerts) ? MOCK_COUNTS : data)
+        })
+        .catch(() => setCounts(MOCK_COUNTS))
+
+    fetchCounts()                                       // immediate on mount
+    const id = setInterval(fetchCounts, 30_000)         // re-poll every 30 s
+    return () => clearInterval(id)
   }, [])
 
   return (

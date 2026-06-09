@@ -18,10 +18,21 @@ import { useToast } from '../context/ToastContext'
 const BLANK = { name: '', platform_key: '', base_url: '' }
 
 const PLATFORM_ICONS = {
-  twitter:   { glyph: '𝕏',   bg: 'bg-slate-800', text: 'text-white' },
-  reddit:    { glyph: 'R',    bg: 'bg-orange-500',text: 'text-white' },
-  instagram: { glyph: 'IG',   bg: 'bg-pink-500',  text: 'text-white' },
-  news:      { glyph: '📰',   bg: 'bg-blue-500',  text: 'text-white' },
+  // Social
+  twitter:          { glyph: '𝕏',  bg: 'bg-slate-800',  text: 'text-white' },
+  reddit:           { glyph: 'R',   bg: 'bg-orange-500', text: 'text-white' },
+  instagram:        { glyph: 'IG',  bg: 'bg-pink-500',   text: 'text-white' },
+  linkedin:         { glyph: 'in',  bg: 'bg-blue-600',   text: 'text-white' },
+  tiktok:           { glyph: 'TT',  bg: 'bg-black',      text: 'text-white' },
+  // Publications — each has its own platform_key
+  bu_today:         { glyph: '📰',  bg: 'bg-red-700',    text: 'text-white' },
+  daily_free_press: { glyph: '📰',  bg: 'bg-red-700',    text: 'text-white' },
+  wbur:             { glyph: '📻',  bg: 'bg-indigo-700', text: 'text-white' },
+  boston_globe:     { glyph: '📰',  bg: 'bg-blue-800',   text: 'text-white' },
+  boston_herald:    { glyph: '📰',  bg: 'bg-blue-800',   text: 'text-white' },
+  ghb_boston:       { glyph: '📺',  bg: 'bg-teal-700',   text: 'text-white' },
+  // Legacy fallback key
+  news:             { glyph: '📰',  bg: 'bg-blue-500',   text: 'text-white' },
 }
 
 function PlatformIcon({ platformKey }) {

@@ -7,15 +7,22 @@
  * When an alert has a mention_id, a "View mention →" link navigates to MentionDetail.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Bell, CheckCircle, Eye, ArrowRight } from 'lucide-react'
+import { Bell, CheckCircle, Eye, ArrowRight, RefreshCw } from 'lucide-react'
 import { alertsApi } from '../api/client'
 import { MOCK_ALERTS } from '../api/mockData'
 import Badge      from '../components/ui/Badge'
 import Spinner    from '../components/ui/Spinner'
 import MockBanner from '../components/ui/MockBanner'
 import { useToast } from '../context/ToastContext'
+
+const REFRESH_MS = 30_000
+
+function fmtUpdated(d) {
+  if (!d) return null
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
 
 function fmtTime(iso) {
   if (!iso) return '—'
@@ -33,41 +40,50 @@ const severityBorder = s =>
 
 export default function Alerts() {
   const { toast } = useToast()
-  const [alerts,    setAlerts]    = useState([])
-  const [loading,   setLoading]   = useState(true)
-  const [usingMock, setUsingMock] = useState(false)
-  const [tab,       setTab]       = useState('open')
-  const [acting,    setActing]    = useState(null)
+  const [alerts,       setAlerts]       = useState([])
+  const [loading,      setLoading]      = useState(true)
+  const [usingMock,    setUsingMock]    = useState(false)
+  const [lastUpdated,  setLastUpdated]  = useState(null)
+  const [tab,          setTab]          = useState('open')
+  const [acting,       setActing]       = useState(null)
+  const tabRef = useRef('open')
 
-  const load = async (t = tab) => {
-    setLoading(true)
+  const load = async (t = tab, silent = false) => {
+    if (!silent) setLoading(true)
     try {
       let res
-      if (t === 'open')         res = await alertsApi.getOpen()
+      if (t === 'open')          res = await alertsApi.getOpen()
       else if (t === 'critical') res = await alertsApi.list({ severity: 'critical' })
       else                       res = await alertsApi.list()
 
       if (res.data.length === 0) {
         setUsingMock(true)
         let data = [...MOCK_ALERTS]
-        if (t === 'open')         data = data.filter(a => a.status !== 'resolved')
-        if (t === 'critical')     data = data.filter(a => a.severity === 'critical')
+        if (t === 'open')     data = data.filter(a => a.status !== 'resolved')
+        if (t === 'critical') data = data.filter(a => a.severity === 'critical')
         setAlerts(data)
       } else {
         setUsingMock(false)
         setAlerts(res.data)
       }
+      setLastUpdated(new Date())
     } catch {
-      setUsingMock(true)
-      setAlerts(MOCK_ALERTS)
+      if (!silent) { setUsingMock(true); setAlerts(MOCK_ALERTS) }
     } finally {
-      setLoading(false)
+      if (!silent) setLoading(false)
     }
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { tabRef.current = tab }, [tab])
 
-  const changeTab = t => { setTab(t); load(t) }
+  // Initial load + 30 s auto-refresh
+  useEffect(() => {
+    load()
+    const id = setInterval(() => load(tabRef.current, true), REFRESH_MS)
+    return () => clearInterval(id)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const changeTab = t => { setTab(t); tabRef.current = t; load(t) }
 
   const act = async (id, status) => {
     setActing(id)
@@ -96,9 +112,25 @@ export default function Alerts() {
   return (
     <div className="p-6 max-w-4xl space-y-5">
 
-      <div>
-        <h1 className="text-xl font-bold text-gray-900">Risk Alerts</h1>
-        <p className="text-sm text-gray-500">Monitor and triage system-generated alerts</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Risk Alerts</h1>
+          <p className="text-sm text-gray-500">Monitor and triage system-generated alerts</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {lastUpdated && (
+            <span className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
+              Live · {fmtUpdated(lastUpdated)}
+            </span>
+          )}
+          <button
+            onClick={() => load(tab)}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+          >
+            <RefreshCw size={13} /> Refresh
+          </button>
+        </div>
       </div>
 
       {usingMock && <MockBanner />}

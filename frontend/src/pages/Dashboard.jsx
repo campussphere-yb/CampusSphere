@@ -9,13 +9,20 @@
  *   GET /api/v1/dashboard/recent-alerts?limit=6
  */
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   LineChart, Line, XAxis, YAxis, Tooltip,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts'
-import { Sparkles, TrendingUp, AlertTriangle, ArrowRight, Download } from 'lucide-react'
+import { Sparkles, TrendingUp, AlertTriangle, ArrowRight, Download, RefreshCw } from 'lucide-react'
+
+const REFRESH_MS = 30_000
+
+function fmtUpdated(d) {
+  if (!d) return null
+  return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+}
 import { dashboardApi } from '../api/client'
 import {
   MOCK_OVERVIEW, MOCK_RISK_TREND, MOCK_MENTIONS, MOCK_ALERTS,
@@ -143,43 +150,28 @@ export default function Dashboard() {
   const [mentions,      setMentions]      = useState([])
   const [alerts,        setAlerts]        = useState([])
   const [loading,       setLoading]       = useState(true)
+  const [refreshing,    setRefreshing]    = useState(false)
   const [usingMock,     setUsingMock]     = useState(false)
+  const [lastUpdated,   setLastUpdated]   = useState(null)
   const { toast } = useToast()
   const [days,          setDays]          = useState(30)
   const [trendLoading,  setTrendLoading]  = useState(false)
 
-  useEffect(() => {
-    ;(async () => {
-      try {
-        const [ovRes, inRes, trRes, tpRes, srRes, mnRes, alRes] = await Promise.all([
-          dashboardApi.getOverview(),
-          dashboardApi.getAiInsight(),
-          dashboardApi.getRiskTrend(30),
-          dashboardApi.getTrendingTopics(6),
-          dashboardApi.getTopSources(5),
-          dashboardApi.getRecentMentions(6),
-          dashboardApi.getRecentAlerts(6),
-        ])
+  const loadAll = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
+    else         setRefreshing(true)
+    try {
+      const [ovRes, inRes, trRes, tpRes, srRes, mnRes, alRes] = await Promise.all([
+        dashboardApi.getOverview(),
+        dashboardApi.getAiInsight(),
+        dashboardApi.getRiskTrend(days),
+        dashboardApi.getTrendingTopics(6),
+        dashboardApi.getTopSources(5),
+        dashboardApi.getRecentMentions(6),
+        dashboardApi.getRecentAlerts(6),
+      ])
 
-        if (ovRes.data.total_mentions === 0) {
-          setUsingMock(true)
-          setOverview(MOCK_OVERVIEW)
-          setInsight(MOCK_AI_INSIGHT)
-          setTrend(MOCK_RISK_TREND)
-          setTopics(MOCK_TRENDING_TOPICS)
-          setSources(MOCK_TOP_SOURCES)
-          setMentions(MOCK_MENTIONS)
-          setAlerts(MOCK_ALERTS)
-        } else {
-          setOverview(ovRes.data)
-          setInsight(inRes.data)
-          setTrend(trRes.data)
-          setTopics(tpRes.data)
-          setSources(srRes.data)
-          setMentions(mnRes.data)
-          setAlerts(alRes.data)
-        }
-      } catch {
+      if (ovRes.data.total_mentions === 0) {
         setUsingMock(true)
         setOverview(MOCK_OVERVIEW)
         setInsight(MOCK_AI_INSIGHT)
@@ -188,11 +180,40 @@ export default function Dashboard() {
         setSources(MOCK_TOP_SOURCES)
         setMentions(MOCK_MENTIONS)
         setAlerts(MOCK_ALERTS)
-      } finally {
-        setLoading(false)
+      } else {
+        setUsingMock(false)
+        setOverview(ovRes.data)
+        setInsight(inRes.data)
+        setTrend(trRes.data)
+        setTopics(tpRes.data)
+        setSources(srRes.data)
+        setMentions(mnRes.data)
+        setAlerts(alRes.data)
       }
-    })()
-  }, [])
+      setLastUpdated(new Date())
+    } catch {
+      if (!silent) {
+        setUsingMock(true)
+        setOverview(MOCK_OVERVIEW)
+        setInsight(MOCK_AI_INSIGHT)
+        setTrend(MOCK_RISK_TREND)
+        setTopics(MOCK_TRENDING_TOPICS)
+        setSources(MOCK_TOP_SOURCES)
+        setMentions(MOCK_MENTIONS)
+        setAlerts(MOCK_ALERTS)
+      }
+    } finally {
+      setLoading(false)
+      setRefreshing(false)
+    }
+  }, [days]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Initial load + 30 s auto-refresh
+  useEffect(() => {
+    loadAll()
+    const id = setInterval(() => loadAll(true), REFRESH_MS)
+    return () => clearInterval(id)
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const changeDays = async (d) => {
     setDays(d)
@@ -222,18 +243,34 @@ export default function Dashboard() {
   return (
     <div className="p-6 max-w-7xl space-y-5">
 
-      {/* ── Page header with export ── */}
+      {/* ── Page header with live indicator + export ── */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-sm text-gray-500">Real-time reputation monitoring overview</p>
         </div>
-        <button
-          onClick={() => { exportCSV(overview, trend, mentions); toast('Report exported to CSV', 'info') }}
-          className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
-        >
-          <Download size={13} /> Export CSV
-        </button>
+        <div className="flex items-center gap-2">
+          {lastUpdated && (
+            <span className="hidden sm:flex items-center gap-1.5 text-[11px] text-gray-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse shrink-0" />
+              Live · {fmtUpdated(lastUpdated)}
+            </span>
+          )}
+          <button
+            onClick={() => loadAll(true)}
+            disabled={refreshing}
+            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 transition disabled:opacity-50"
+          >
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Updating…' : 'Refresh'}
+          </button>
+          <button
+            onClick={() => { exportCSV(overview, trend, mentions); toast('Report exported to CSV', 'info') }}
+            className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900 px-3 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition"
+          >
+            <Download size={13} /> Export CSV
+          </button>
+        </div>
       </div>
 
       {usingMock && <MockBanner />}
