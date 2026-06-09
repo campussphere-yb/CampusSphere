@@ -257,15 +257,26 @@ export default function Mentions() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
-                    {mentions.map(m => (
+                    {mentions.map(m => {
+                      const isNew = m.status === 'new'
+                      return (
                       <tr
                         key={m.id}
                         onClick={() => navigate(`/mentions/${m.id}`)}
-                        className="hover:bg-indigo-50/40 transition-colors align-top cursor-pointer"
+                        className={`transition-colors align-top cursor-pointer
+                          ${isNew
+                            ? 'bg-indigo-50/60 hover:bg-indigo-100/60 border-l-[3px] border-l-indigo-500'
+                            : 'hover:bg-indigo-50/40 border-l-[3px] border-l-transparent'
+                          }`}
                       >
                         {/* Content */}
                         <td className="px-4 py-3">
-                          <p className="line-clamp-2 text-gray-700 leading-relaxed">{m.content}</p>
+                          <div className="flex items-start gap-2">
+                            {isNew && (
+                              <span className="mt-1 shrink-0 w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                            )}
+                            <div className="min-w-0">
+                          <p className={`line-clamp-2 leading-relaxed ${isNew ? 'text-gray-900 font-medium' : 'text-gray-700'}`}>{m.content}</p>
                           {m.url && (
                             <a
                               href={m.url}
@@ -277,6 +288,8 @@ export default function Mentions() {
                               View source ↗
                             </a>
                           )}
+                            </div>
+                          </div>
                         </td>
                         {/* Platform */}
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -335,7 +348,8 @@ export default function Mentions() {
                           {fmtTime(m.created_at)}
                         </td>
                       </tr>
-                    ))}
+                      )
+                    })}
                   </tbody>
                 </table>
               </div>
