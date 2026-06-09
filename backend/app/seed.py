@@ -13,12 +13,15 @@ Sources covered:
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
+from app.models.app_setting      import AppSetting
 from app.models.source           import Source
 from app.models.department       import Department
 from app.models.connector        import Connector, CredentialStore, ConnectorStatus
 from app.models.mention          import Mention, SentimentLabel, RiskLevel, MentionStatus
 from app.models.alert            import Alert, AlertType, AlertSeverity, AlertStatus
 from app.models.tracking_keyword import TrackingKeyword
+
+_SEED_FLAG = "initial_seed_complete"
 
 
 def _ago(days: int = 0, hours: int = 0, minutes: int = 0) -> datetime:
@@ -27,9 +30,23 @@ def _ago(days: int = 0, hours: int = 0, minutes: int = 0) -> datetime:
 
 
 def seed_if_empty(db: Session) -> None:
-    """Insert BU demo data only when the database has no mentions yet."""
-    if db.query(Mention).first():
-        return  # already seeded — do nothing
+    """
+    Insert demo data only on the very first cold start of a fresh database.
+
+    Uses a persistent flag in the app_settings table rather than checking
+    for existing mentions.  This means:
+      • SQLite (local dev)    — seeds once per fresh .db file, then never again.
+      • PostgreSQL (Railway)  — seeds once when the DB is first provisioned,
+                                then survives every subsequent redeploy.
+      • User-added data       — is NEVER overwritten, even if all mentions are
+                                manually deleted.
+
+    To force a re-seed (e.g. after swapping universities):
+      DELETE FROM app_settings WHERE key = 'initial_seed_complete';
+    """
+    if db.query(AppSetting).filter_by(key=_SEED_FLAG).first():
+        print("[seed] Persistent flag found — skipping seed. User data preserved.")
+        return
 
     # ── Sources ────────────────────────────────────────────────────────────────
     # Social platforms
@@ -371,5 +388,10 @@ def seed_if_empty(db: Session) -> None:
         ),
     ])
 
+    # Write the persistent flag BEFORE committing so it's atomic with the data.
+    # On PostgreSQL this survives every future redeploy.
+    db.add(AppSetting(key=_SEED_FLAG, value="true"))
+
     db.commit()
     print(f"[seed] Seeded {len(mentions)} mentions across 11 BU sources — all status=new.")
+    print(f"[seed] Persistent flag '{_SEED_FLAG}' written. Seed will not run again.")

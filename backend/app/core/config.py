@@ -9,8 +9,10 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = True
 
-    # SQLite database file lives in the backend/ folder.
-    # "sqlite:///./campussphere.db" means: current directory, file called campussphere.db
+    # Local dev:   SQLite file in backend/ folder (no setup needed).
+    # Production:  Set DATABASE_URL to your PostgreSQL connection string.
+    #              Railway sets this automatically when you add a Postgres plugin.
+    #              Format: postgresql://user:password@host:5432/dbname
     DATABASE_URL: str = "sqlite:///./campussphere.db"
 
     # Placeholder — swap this for a real secret in production.

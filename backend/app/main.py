@@ -27,6 +27,7 @@ from app.models import (  # noqa: F401
     suggested_response,
     summary,
     tracking_keyword,
+    app_setting,          # persistent seed-flag table
 )
 
 # ── Import all routers ────────────────────────────────────────────────────────
