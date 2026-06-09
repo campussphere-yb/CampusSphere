@@ -21,12 +21,21 @@ const SENTIMENTS  = ['', 'positive', 'neutral', 'negative']
 const STATUSES    = ['', 'new', 'reviewed', 'escalated', 'resolved', 'ignored']
 
 const PLATFORM_ICONS = {
-  twitter:   '𝕏',
-  reddit:    'R',
-  instagram: 'IG',
-  linkedin:  'in',
-  tiktok:    'TT',
-  news:      '📰',
+  // Social
+  twitter:          '𝕏',
+  reddit:           'R',
+  instagram:        'IG',
+  linkedin:         'in',
+  tiktok:           'TT',
+  // Publications (each has its own platform_key in the DB)
+  bu_today:         '📰',
+  daily_free_press: '📰',
+  wbur:             '📰',
+  boston_globe:     '📰',
+  boston_herald:    '📰',
+  ghb_boston:       '📰',
+  // Legacy fallback
+  news:             '📰',
 }
 
 function riskColour(level) {

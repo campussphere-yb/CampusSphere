@@ -59,6 +59,9 @@ from app.database import SessionLocal       # noqa: E402
 _db = SessionLocal()
 try:
     seed_if_empty(_db)
+except Exception as _seed_err:          # noqa: BLE001
+    print(f"[seed] ERROR — seed_if_empty() failed: {_seed_err}")
+    _db.rollback()
 finally:
     _db.close()
 

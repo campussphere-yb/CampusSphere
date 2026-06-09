@@ -33,19 +33,19 @@ def seed_if_empty(db: Session) -> None:
 
     # ── Sources ────────────────────────────────────────────────────────────────
     # Social platforms
-    tw = Source(name="Twitter / X",          platform_key="twitter",   base_url="https://twitter.com",              is_active=True)
-    rd = Source(name="Reddit — r/BostonU",   platform_key="reddit",    base_url="https://reddit.com/r/BostonU",     is_active=True)
-    ig = Source(name="Instagram",            platform_key="instagram", base_url="https://instagram.com",            is_active=True)
-    li = Source(name="LinkedIn",             platform_key="linkedin",  base_url="https://linkedin.com",             is_active=True)
-    tt = Source(name="TikTok",               platform_key="tiktok",    base_url="https://tiktok.com",               is_active=True)
-    # BU-owned / affiliated publications
-    but  = Source(name="BU Today",           platform_key="news",      base_url="https://bu.edu/today",             is_active=True)
-    dfp  = Source(name="Daily Free Press",   platform_key="news",      base_url="https://dailyfreepress.com",       is_active=True)
-    wbur = Source(name="WBUR NPR Boston",    platform_key="news",      base_url="https://wbur.org",                 is_active=True)
+    tw = Source(name="Twitter / X",          platform_key="twitter",         base_url="https://twitter.com",              is_active=True)
+    rd = Source(name="Reddit — r/BostonU",   platform_key="reddit",          base_url="https://reddit.com/r/BostonU",     is_active=True)
+    ig = Source(name="Instagram",            platform_key="instagram",       base_url="https://instagram.com",            is_active=True)
+    li = Source(name="LinkedIn",             platform_key="linkedin",        base_url="https://linkedin.com",             is_active=True)
+    tt = Source(name="TikTok",               platform_key="tiktok",          base_url="https://tiktok.com",               is_active=True)
+    # BU-owned / affiliated publications  (each needs a UNIQUE platform_key)
+    but  = Source(name="BU Today",           platform_key="bu_today",        base_url="https://bu.edu/today",             is_active=True)
+    dfp  = Source(name="Daily Free Press",   platform_key="daily_free_press",base_url="https://dailyfreepress.com",       is_active=True)
+    wbur = Source(name="WBUR NPR Boston",    platform_key="wbur",            base_url="https://wbur.org",                 is_active=True)
     # External Boston media
-    glob = Source(name="Boston Globe",       platform_key="news",      base_url="https://bostonglobe.com",          is_active=True)
-    her  = Source(name="Boston Herald",      platform_key="news",      base_url="https://bostonherald.com",         is_active=True)
-    ghb  = Source(name="GBH Boston",         platform_key="news",      base_url="https://wgbh.org",                 is_active=True)
+    glob = Source(name="Boston Globe",       platform_key="boston_globe",    base_url="https://bostonglobe.com",          is_active=True)
+    her  = Source(name="Boston Herald",      platform_key="boston_herald",   base_url="https://bostonherald.com",         is_active=True)
+    ghb  = Source(name="GBH Boston",         platform_key="ghb_boston",      base_url="https://wgbh.org",                 is_active=True)
 
     db.add_all([tw, rd, ig, li, tt, but, dfp, wbur, glob, her, ghb])
     db.flush()
