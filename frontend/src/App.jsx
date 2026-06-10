@@ -8,6 +8,7 @@ import Connectors     from './pages/Connectors'
 import Sources        from './pages/Sources'
 import Summaries      from './pages/Summaries'
 import TrackingSetup  from './pages/TrackingSetup'
+import Departments    from './pages/Departments'
 import Login          from './pages/Login'
 import NotFound       from './pages/NotFound'
 
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="sources"            element={<Sources />} />
         <Route path="summaries"          element={<Summaries />} />
         <Route path="tracking"           element={<TrackingSetup />} />
+        <Route path="departments"        element={<Departments />} />
         <Route path="*"                  element={<NotFound />} />
       </Route>
     </Routes>

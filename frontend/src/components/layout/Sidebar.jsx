@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, MessageSquare, Bell,
-  Plug, Globe, Sparkles, SlidersHorizontal, LogOut,
+  Plug, Globe, Sparkles, SlidersHorizontal, LogOut, Building2,
 } from 'lucide-react'
 import { dashboardApi } from '../../api/client'
 import { MOCK_COUNTS } from '../../api/mockData'
@@ -28,7 +28,8 @@ const NAV_SECTIONS = [
     items: [
       { to: '/connectors', Icon: Plug,                label: 'Connectors'     },
       { to: '/sources',    Icon: Globe,               label: 'Sources'        },
-      { to: '/tracking',   Icon: SlidersHorizontal,   label: 'Tracking Setup' },
+      { to: '/tracking',     Icon: SlidersHorizontal,   label: 'Tracking Setup' },
+      { to: '/departments',  Icon: Building2,           label: 'Departments'    },
     ],
   },
 ]

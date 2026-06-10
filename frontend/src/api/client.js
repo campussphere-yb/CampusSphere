@@ -99,7 +99,12 @@ export const trackingApi = {
 
 // ── Departments ───────────────────────────────────────────────────────────────
 export const departmentsApi = {
-  list: () => http.get('/departments/'),
+  list:   ()               => http.get('/departments/'),
+  get:    (id)             => http.get(`/departments/${id}`),
+  create: (payload)        => http.post('/departments/', payload),
+  update: (id, payload)    => http.patch(`/departments/${id}`, payload),
+  remove: (id)             => http.delete(`/departments/${id}`),
+  mentions: (id)           => http.get(`/departments/${id}/mentions`),
 }
 
 // ── AI ────────────────────────────────────────────────────────────────────────
