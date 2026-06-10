@@ -272,7 +272,7 @@ export default function MentionDetail() {
             <span className="text-gray-500 font-medium">{mention.source?.name ?? `Source #${mention.source_id}`}</span>
           </span>
           {mention.author_handle && <span>{mention.author_handle}</span>}
-          <span>{fmtFull(mention.created_at)}</span>
+          <span>{fmtFull(mention.published_at ?? mention.created_at)}</span>
         </div>
       </div>
 

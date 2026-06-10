@@ -388,9 +388,9 @@ export default function Mentions() {
                             ))}
                           </select>
                         </td>
-                        {/* Time */}
+                        {/* Time — use published_at (realistic spread) falling back to created_at */}
                         <td className="px-4 py-3 text-gray-400 whitespace-nowrap">
-                          {fmtTime(m.created_at)}
+                          {fmtTime(m.published_at ?? m.created_at)}
                         </td>
                       </tr>
                       )
