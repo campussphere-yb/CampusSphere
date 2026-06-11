@@ -77,7 +77,10 @@ def update_mention(mention_id: int, payload: MentionUpdate, db: Session = Depend
     mention = db.query(Mention).filter(Mention.id == mention_id).first()
     if not mention:
         raise HTTPException(status_code=404, detail="Mention not found.")
-    for field, value in payload.model_dump(exclude_none=True).items():
+    # exclude_unset=True so we only apply fields the caller actually sent.
+    # This correctly passes explicit nulls (e.g. department_id=null to unassign)
+    # while still ignoring fields that were omitted from the request body entirely.
+    for field, value in payload.model_dump(exclude_unset=True).items():
         setattr(mention, field, value)
     db.commit()
     db.refresh(mention)

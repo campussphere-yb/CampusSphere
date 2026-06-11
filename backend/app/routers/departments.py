@@ -53,6 +53,11 @@ def delete_department(dept_id: int, db: Session = Depends(get_db)):
     dept = db.query(Department).filter(Department.id == dept_id).first()
     if not dept:
         raise HTTPException(status_code=404, detail="Department not found.")
+    # Null-out any mentions still routed to this department before deleting,
+    # so we avoid a FK constraint violation from the mentions table.
+    db.query(Mention).filter(Mention.department_id == dept_id).update(
+        {Mention.department_id: None}, synchronize_session="fetch"
+    )
     db.delete(dept)
     db.commit()
 
